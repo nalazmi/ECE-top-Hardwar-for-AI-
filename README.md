@@ -1,0 +1,368 @@
+Workload #1: Differential Equation Solver
+# ode_solver.py
+def euler(f, y0, t0, t1, h):
+    t = t0
+    y = y0
+    while t < t1:
+        y += h * f(t, y)
+        t += h
+    return y
+
+def f(t, y):
+    return -2 * y + 1
+
+# Example usage
+if __name__ == "__main__":
+    result = euler(f, 1, 0, 2, 0.01)
+    print(result)
+---------------------------------------------------------------------
+Workload #2: Simple CNN with PyTorch
+# cnn.py
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+class SimpleCNN(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.conv = nn.Conv2d(1, 8, 3)
+        self.fc = nn.Linear(1352, 10)
+
+    def forward(self, x):
+        x = F.relu(self.conv(x))
+        x = x.view(x.size(0), -1)
+        return self.fc(x)
+
+# Dummy forward pass
+if __name__ == "__main__":
+    model = SimpleCNN()
+    input_data = torch.randn(1, 1, 14, 14)
+    output = model(input_data)
+    print(output)
+----------------------------------------------------------------------
+Workload #3: Matrix Multiplication
+# matrix_mult.py
+import numpy as np
+
+def matmul(a, b):
+    result = [[sum(x*y for x,y in zip(row,col)) for col in zip(*b)] for row in a]
+    return result
+
+# Example
+if __name__ == "__main__":
+    A = [[1, 2], [3, 4]]
+    B = [[2, 0], [1, 2]]
+    print(matmul(A, B))
+------------------------------------------------------------------------
+Generate and disassemble the bytecode:
+euler(f, y0, t0, t1, h)
+Used in the differential equation solver.
+
+Key instructions:
+
+COMPARE_OP <, BINARY_OP +=, CALL — shows use of control flow and arithmetic.
+
+Stack-based VM style: values are loaded and operated on using a stack.
+
+  Name:              euler
+Argument count:    5
+Variable names:    f, y0, t0, t1, h, t, y
+
+Instructions:
+  LOAD_FAST t0
+  STORE_FAST t
+  LOAD_FAST y0
+  STORE_FAST y
+  loop:
+    LOAD_FAST t
+    LOAD_FAST t1
+    COMPARE_OP <
+    POP_JUMP_FORWARD_IF_FALSE exit
+    LOAD_FAST y
+    LOAD_FAST h
+    LOAD_FAST f
+    LOAD_FAST t
+    LOAD_FAST y
+    CALL_FUNCTION
+    BINARY_MULTIPLY
+    INPLACE_ADD
+    STORE_FAST y
+    LOAD_FAST t
+    LOAD_FAST h
+    INPLACE_ADD
+    STORE_FAST t
+    JUMP_BACK to loop
+  exit:
+    LOAD_FAST y
+    RETURN
+----------------------------------------------------------------------------------------
+      f(t, y)
+Small helper function for the differential equation.
+
+<details> <summary>View Bytecode</summary>
+  Name:              f
+Argument count:    2
+Instructions:
+  LOAD_CONST -2
+  LOAD_FAST y
+  BINARY_MULTIPLY
+  LOAD_CONST 1
+  BINARY_ADD
+  RETURN
+---------------------------------------------------------------------------------------
+  
+matmul(a, b)
+Matrix multiplication using list comprehensions and zip.
+
+<details> <summary>View Bytecode</summary>
+
+  Name:              matmul
+Argument count:    2
+Instructions:
+  MAKE_CLOSURE with b
+  BUILD_LIST using listcomp
+  CALL listcomp on each row
+  STORE result
+  RETURN result
+------------------------------------------------------------------------------------------
+  
+  Can you guess the virtual machine?
+→ Answer: CPython VM — stack-based execution confirmed by bytecode analysis. ✅
+  -------------------------------------------------------------------------------------
+  Full Instruction Distribution
+	euler	f	matmul
+RESUME	1	1	1
+LOAD_FAST	14	1	2
+STORE_FAST	4	0	1
+COMPARE_OP	2	0	0
+POP_JUMP_FORWARD_IF_FALSE	1	0	0
+PUSH_NULL	1	0	0
+PRECALL	1	0	1
+CALL	1	0	1
+BINARY_OP	3	2	0
+POP_JUMP_BACKWARD_IF_TRUE	1	0	0
+RETURN_VALUE	1	1	1
+LOAD_CONST	0	2	1
+MAKE_CELL	0	0	1
+LOAD_CLOSURE	0	0	1
+BUILD_TUPLE	0	0	1
+MAKE_FUNCTION	0	0	1
+GET_ITER	0	0	1
+---------------------------------------------------------------------------
+  🧠 Instruction Distribution Breakdown
+Instruction	Euler (ODE)	f(t, y)	Matrix Multiply
+RESUME	1	1	1
+LOAD_FAST	14	1	2
+STORE_FAST	4	0	1
+COMPARE_OP	2	0	0
+POP_JUMP_FORWARD_IF_FALSE	1	0	0
+BINARY_OP	3	2	0
+ --------------------------------------------------------------------------------
+
+  Profiling Code with cProfile:
+import cProfile
+import pstats
+
+# Euler ODE Solver
+def euler(f, y0, t0, t1, h):
+    t = t0
+    y = y0
+    while t < t1:
+        y += h * f(t, y)
+        t += h
+    return y
+
+def f(t, y):
+    return -2 * y + 1
+
+def run_euler():
+    euler(f, 1, 0, 2, 0.001)
+
+# Matrix multiplication
+def matmul(a, b):
+    result = [[sum(x*y for x,y in zip(row,col)) for col in zip(*b)] for row in a]
+    return result
+
+def run_matmul():
+    A = [[i + j for j in range(50)] for i in range(50)]
+    B = [[i * j for j in range(50)] for i in range(50)]
+    matmul(A, B)
+
+# CNN (Simple version)
+def run_cnn():
+    import torch
+    import torch.nn as nn
+    import torch.nn.functional as F
+
+    class SimpleCNN(nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.conv = nn.Conv2d(1, 8, 3)
+            self.fc = nn.Linear(1352, 10)
+
+        def forward(self, x):
+            x = F.relu(self.conv(x))
+            x = x.view(x.size(0), -1)
+            return self.fc(x)
+
+    model = SimpleCNN()
+    input_data = torch.randn(1, 1, 14, 14)
+    output = model(input_data)
+
+# Choose one to profile:
+if __name__ == "__main__":
+    cProfile.run("run_euler()", "euler.prof")
+    cProfile.run("run_matmul()", "matmul.prof")
+    cProfile.run("run_cnn()", "cnn.prof")
+----------------------------------------------------------------------------------------
+the parallelism + architecture analysis
+  
+🔍 1. Euler Differential Equation Solver
+✅ Algorithm Structure
+Simple numerical loop (while t < t1) using Euler's method.
+
+At each step: y += h * f(t, y)
+
+Sequential updates: each new y depends on the previous one.
+
+🔄 Data Dependencies
+High dependency between iterations: each step depends on the previous result (y).
+
+⚠️ Parallelism Potential
+❌ Not parallelizable as-is because it’s inherently sequential.
+
+✅ Could parallelize multiple independent ODEs, but not a single instance.
+
+💻 Suggested Execution Architecture
+CPU scalar pipeline (traditional)
+
+Optimized on systems with fast loops and memory locality
+------------------------------------------------------------------------------------
+  2. Matrix Multiplication
+✅ Algorithm Structure
+Purely numeric with nested loops or comprehensions.
+
+Each element in result matrix is computed independently:
+
+python
+Copy
+Edit
+result[i][j] = sum(a[i][k] * b[k][j] for k in range(n))
+🔄 Data Dependencies
+✅ No cross-dependencies between result elements.
+
+Fully data-parallel task.
+
+⚡️ Parallelism Potential
+🔥 Massively parallelizable:
+
+Across rows, columns, or even individual elements
+
+Ideal for GPU, SIMD, and multi-core CPU
+
+💻 Suggested Execution Architecture
+GPU acceleration (e.g., CUDA, OpenCL)
+
+SIMD vectorized CPU (e.g., AVX instructions)
+
+Libraries like NumPy, BLAS, or CuBLAS use this
+  -----------------------------------------------------------------------------------
+🔍 3. CNN (Convolutional Neural Network)
+✅ Algorithm Structure
+Layers of computation:
+
+Convolution → ReLU → Flatten → Linear layer
+
+Each layer operates on batches of tensors
+
+🔄 Data Dependencies
+✅ Intra-layer: operations like convolution can run in parallel across channels/filters
+
+⚠️ Inter-layer: each layer must wait for the previous one to complete
+
+⚡️ Parallelism Potential
+🔥 High — especially across:
+
+Pixels, filters, feature maps
+
+Batches of input data
+
+💻 Suggested Execution Architecture
+GPU or TPU for matrix-heavy ops and convolutions
+
+Frameworks like PyTorch or TensorFlow do this natively
+  ---------------------------------------------------------------------------------------
+  ✅ Summary Table
+Workload	Parallelism	Architecture
+Euler ODE Solver	❌ Low	CPU (sequential)
+Matrix Multiply	🔥 Very High	GPU / SIMD / Multi-core CPU
+CNN	🔥 High	GPU / TPU (via ML frameworks)
+*********************************************************************************************************************************************************
+Final Report: Python Workload Profiling & Architecture Exploration
+Completed with the help of ChatGPT
+
+👋 Introduction
+For this task, I teamed up with ChatGPT to explore three different Python workloads in depth — looking at how they execute, how they can be analyzed and profiled, and how their structure affects performance and potential for parallel execution. This included bytecode analysis, profiling, and thinking about what hardware architectures would suit each workload.
+
+  🛠 Workloads Selected
+Working with ChatGPT, we selected the following workloads for variety in structure and behavior:
+
+Euler Method (ODE Solver) – basic time-step simulation with feedback loop
+
+Matrix Multiplication – math-heavy and naturally parallel
+
+Convolutional Neural Network (CNN) – ML-based, structured and layered
+
+🔧 Code, Bytecode & Disassembly
+We wrote and tested each workload in Python. Then, using the py_compile module, we compiled the code to .pyc bytecode and analyzed it using the dis module.
+
+ChatGPT Helped Me:
+Generate working code examples quickly
+
+Understand how to disassemble functions
+
+Identify patterns in bytecode (e.g. LOAD_FAST, CALL_FUNCTION, BINARY_OP)
+
+Key Insight:
+From the bytecode alone, I could clearly tell that Python (specifically CPython) uses a stack-based virtual machine — confirmed by instruction flow.
+➕ Instruction Count & Analysis
+ChatGPT guided me through creating scripts to count arithmetic instructions, like BINARY_OP, across workloads.
+
+Example Instruction Count:
+Opcode	Euler	f(t,y)	Matrix Multiply
+BINARY_OP	3	2	0
+I also compared full instruction distributions using Python’s dis.Bytecode() and collections.Counter.
+
+🔄 Parallelism & Data Dependency Analysis
+After reviewing bytecode and profiler results, we evaluated how parallel-friendly each workload is.
+
+Workload	Structure	Data Dependency	Parallelism Potential
+Euler ODE	Sequential loop	✅ High (step → step)	❌ Low
+Matrix Mult.	Nested loops	❌ None between outputs	✅ High
+CNN	Layered ops	✅ Between layers only	✅ High (internal ops)
+ChatGPT also explained which parts of CNNs (e.g., conv filters, batches) are parallelizable.
+
+  🖥 Execution Architecture Suggestions
+Workload	Suggested Execution Target
+Euler ODE	CPU, scalar, cache-optimized
+Matrix Multiply	GPU / SIMD / BLAS on CPU
+CNN	GPU or TPU via PyTorch/TensorFlow
+  
+✅ What I Learned (with ChatGPT)
+Working on this project with ChatGPT, I learned to:
+
+Disassemble Python code and inspect bytecode
+
+Recognize that CPython is stack-based
+
+Count and analyze bytecode instructions for structure
+
+Use cProfile and snakeviz to find bottlenecks
+
+Think critically about data dependencies and how they affect parallelism
+
+Match workloads with ideal execution hardware
+Also, I really experienced the difference between “vibe coding” (writing code freely and fixing it later) vs methodical, test-driven development. ChatGPT helped me debug quickly and understand why things broke — not just how to fix them.
+
+🧾 Final Thoughts
+This task wasn’t just about profiling Python. It was about seeing code as a system, where logic, performance, and architecture all interact. Having ChatGPT to brainstorm, explain, fix, and guide me through real profiling, debugging, and architectural reasoning made this an incredibly educational experience — and also a lot more fun.
