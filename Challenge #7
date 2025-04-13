@@ -1,0 +1,172 @@
+Challenge #7 Report and cods:
+Overview
+For this challenge, I worked with ChatGPT to implement and visualize how a perceptron learns over time. The goal was to see the decision boundary evolve as the perceptron adjusts its weights based on training data.
+
+We visualized this both as:
+
+A static plot (lines for each epoch)
+
+An animated version (line updates frame by frame)
+ What I Built
+A basic 2D perceptron trained on an OR gate dataset
+
+A weight update loop using the Perceptron Learning Rule
+
+A history tracker to save weights after each epoch
+
+A matplotlib plot to visualize decision boundaries
+
+An animated version using FuncAnimation
+
+What I Learned
+How perceptrons adjust weights to classify data
+
+How to derive and plot the decision boundary:
+
+W1 X1 + W2 X2 + b = 0 , X2 = -( W1 X1 + b ) / W2 
+ 
+That animation makes learning behavior way more intuitive
+
+The importance of tracking weight evolution across epochs
+
+How to debug and structure visualizations using Python tools
+Key Tools Used
+NumPy – math and arrays
+
+Matplotlib – plotting + animation
+
+FuncAnimation – frame-by-frame learning animation
+
+Spyder IDE + ChatGPT for writing and debugging together
+Final Thoughts
+This challenge helped me understand perceptrons not just conceptually, but visually. Seeing the decision boundary update in real time made the learning process feel real — not just math on paper. Working with ChatGPT also saved me time debugging and helped me explore cool extra things like animation.
+------------------------------------------------------------------------------------------------------------------------
+codes 1 not animated: 
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Step 1: Training data (OR gate)
+X = np.array([
+    [0, 0],
+    [0, 1],
+    [1, 0],
+    [1, 1]
+])
+y = np.array([0, 1, 1, 1])  # OR logic
+
+# Step 2: Perceptron model
+def step(x):
+    return 1 if x >= 0 else 0
+
+weights = np.random.randn(2)
+bias = np.random.randn()
+learning_rate = 0.1
+history = []
+
+# Step 3: Training loop
+for epoch in range(10):
+    for i in range(len(X)):
+        x_i = X[i]
+        y_hat = step(np.dot(x_i, weights) + bias)
+        error = y[i] - y_hat
+        weights += learning_rate * error * x_i
+        bias += learning_rate * error
+    history.append((weights.copy(), bias))
+
+# Step 4: Plotting the decision boundary
+fig, ax = plt.subplots()
+ax.set_xlim(-1, 2)
+ax.set_ylim(-1, 2)
+ax.set_xlabel("x1")
+ax.set_ylabel("x2")
+
+# Plot training data
+for i in range(len(X)):
+    ax.plot(X[i][0], X[i][1], 'ro' if y[i] == 1 else 'bo')
+
+# Plot decision boundary over epochs
+for epoch, (w, b) in enumerate(history):
+    x_vals = np.array([-1, 2])
+    if w[1] != 0:
+        y_vals = -(w[0] * x_vals + b) / w[1]
+        ax.plot(x_vals, y_vals, label=f"Epoch {epoch}")
+    else:
+        ax.axvline(-b / w[0], label=f"Epoch {epoch}")  # vertical line
+
+ax.legend()
+plt.title("Perceptron Learning: Decision Boundaries")
+plt.grid(True)
+plt.show()
+--------------------------------------------------------------------------------------------------------------------------------
+code 2 : ✅ What You'll See
+Red dots: class 1
+
+Blue dots: class 0
+
+A moving dashed line showing the decision boundary evolving:
+--------------------------------------------------------------------------------------------------------------------------------
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+
+# Step 1: Training data (OR gate)
+X = np.array([
+    [0, 0],
+    [0, 1],
+    [1, 0],
+    [1, 1]
+])
+y = np.array([0, 1, 1, 1])  # OR logic
+
+# Step 2: Perceptron model
+def step(x):
+    return 1 if x >= 0 else 0
+
+weights = np.random.randn(2)
+bias = np.random.randn()
+learning_rate = 0.1
+history = []
+
+# Step 3: Training loop (track weights after each epoch)
+for epoch in range(10):
+    for i in range(len(X)):
+        x_i = X[i]
+        y_hat = step(np.dot(x_i, weights) + bias)
+        error = y[i] - y_hat
+        weights += learning_rate * error * x_i
+        bias += learning_rate * error
+    history.append((weights.copy(), bias))
+
+# Step 4: Animated visualization
+fig, ax = plt.subplots()
+ax.set_xlim(-1, 2)
+ax.set_ylim(-1, 2)
+ax.set_xlabel("x1")
+ax.set_ylabel("x2")
+ax.set_title("Perceptron Learning Animation")
+
+# Plot training data points
+for i in range(len(X)):
+    ax.plot(X[i][0], X[i][1], 'ro' if y[i] == 1 else 'bo')
+
+# Initialize animated line
+line, = ax.plot([], [], 'k--', linewidth=2)
+
+# Update function for animation
+def update(epoch):
+    w, b = history[epoch]
+    x_vals = np.array([-1, 2])
+    if w[1] != 0:
+        y_vals = -(w[0] * x_vals + b) / w[1]
+        line.set_data(x_vals, y_vals)
+    else:
+        # vertical line
+        x_const = -b / w[0]
+        line.set_data([x_const, x_const], [-1, 2])
+    ax.set_title(f"Epoch {epoch}")
+    return line,
+
+# Create animation
+ani = animation.FuncAnimation(fig, update, frames=len(history), interval=800, blit=True)
+plt.show()
+
