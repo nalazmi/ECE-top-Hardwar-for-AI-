@@ -1,0 +1,20 @@
+module MAC (
+    input clk,
+    input reset,
+    input [15:0] in_data,
+    input [15:0] weight,
+    output reg [31:0] mac_out
+);
+    reg [31:0] partial_sum;
+
+    always @(posedge clk or posedge reset) begin
+        if (reset) begin
+            partial_sum <= 0;
+        end else begin
+            partial_sum <= partial_sum + in_data * weight;
+        end
+    end
+
+    assign mac_out = partial_sum;
+
+endmodule
